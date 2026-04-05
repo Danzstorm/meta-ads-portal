@@ -1,10 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 
 interface BudgetFormProps {
     values: {
@@ -22,69 +20,59 @@ export function BudgetForm({ values, onChange }: BudgetFormProps) {
     };
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Budget Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Budget Type</Label>
-                            <Select
-                                value={values.budgetType}
-                                onValueChange={(val) => handleChange('budgetType', val)}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="DAILY">Daily Budget</SelectItem>
-                                    <SelectItem value="LIFETIME">Lifetime Budget</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Amount</Label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                                <Input
-                                    type="number"
-                                    className="pl-7"
-                                    value={values.budgetAmount}
-                                    onChange={(e) => handleChange('budgetAmount', Number(e.target.value))}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+        <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label>Tipo de presupuesto</Label>
+                    <Select
+                        value={values.budgetType}
+                        onValueChange={(val) => handleChange('budgetType', val)}
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="DAILY">Diario — se gasta cada día</SelectItem>
+                            <SelectItem value="LIFETIME">Total — se reparte en el período</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                        {values.budgetType === 'DAILY'
+                            ? 'Meta gastará este monto cada día de forma automática.'
+                            : 'Meta distribuirá el total durante toda la campaña.'}
+                    </p>
+                </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Schedule</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Start Date</Label>
-                            <Input
-                                type="datetime-local"
-                                value={values.startDate}
-                                onChange={(e) => handleChange('startDate', e.target.value)}
-                            />
-                        </div>
-                        <div className="flex items-center space-x-2 pt-8">
-                            <Switch
-                                id="recurring"
-                                checked={values.isRecurring}
-                                onCheckedChange={(val) => handleChange('isRecurring', val)}
-                            />
-                            <Label htmlFor="recurring">Run continuously starting today</Label>
-                        </div>
+                <div className="space-y-2">
+                    <Label>Monto (USD)</Label>
+                    <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-muted-foreground font-medium">$</span>
+                        <Input
+                            type="number"
+                            min={1}
+                            className="pl-7"
+                            value={values.budgetAmount}
+                            onChange={(e) => handleChange('budgetAmount', Number(e.target.value))}
+                        />
                     </div>
-                </CardContent>
-            </Card>
+                    <p className="text-xs text-muted-foreground">
+                        Mínimo recomendado: $5/día. Puedes pausar la campaña en cualquier momento.
+                    </p>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label>Fecha de inicio <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                <Input
+                    type="datetime-local"
+                    value={values.startDate}
+                    onChange={(e) => handleChange('startDate', e.target.value)}
+                    className="max-w-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                    Si no seleccionas una fecha, la campaña inicia en la próxima hora.
+                </p>
+            </div>
         </div>
     )
 }

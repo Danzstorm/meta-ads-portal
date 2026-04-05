@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ChevronRight, ChevronLeft, Check, Loader2, Languages } from "lucide-react"
+import { ChevronRight, ChevronLeft, Check, Loader2 } from "lucide-react"
 import { ObjectiveSelect, ObjectiveType } from "@/components/campaigns/ObjectiveSelect"
 import { BudgetForm } from "@/components/campaigns/BudgetForm"
 import { toast } from "sonner"
@@ -23,7 +23,7 @@ export default function CreateCampaignPage() {
     const { apiClient, adAccountId } = useMeta();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
-    const [lang, setLang] = useState<Language>('es'); // Default to Spanish as per user request context
+    const [lang] = useState<Language>('es');
     const t = dictionaries[lang];
     const isSubmitting = useRef(false);
 
@@ -33,18 +33,18 @@ export default function CreateCampaignPage() {
     const [objective, setObjective] = useState<ObjectiveType | null>(null);
     const [budget, setBudget] = useState({
         budgetType: 'DAILY' as 'DAILY' | 'LIFETIME',
-        budgetAmount: 20,
+        budgetAmount: 10,
         startDate: '',
         isRecurring: true
     });
 
     // Ad Set State
-    const [adSetName, setAdSetName] = useState("New Ad Set");
+    const [adSetName, setAdSetName] = useState("Grupo de anuncios 1");
     const [targeting, setTargeting] = useState<TargetingParams>({
         age_min: 18,
         age_max: 65,
         genders: [],
-        geo_locations: { countries: ['US'] },
+        geo_locations: { countries: ['PE'] },
         languages: [],
         detailed_targeting: [],
         placements: 'advantage'
@@ -52,19 +52,26 @@ export default function CreateCampaignPage() {
 
     // Ad Creative State
     const [adCreative, setAdCreative] = useState<AdCreativeParams>({
-        name: "New Ad",
-        headline: "Welcome",
-        primary_text: "Check out our latest offers.",
-        link_url: "https://example.com",
+        name: "Anuncio 1",
+        headline: "",
+        primary_text: "",
+        link_url: "",
         page_id: "",
         image_url: ""
     });
 
-    // Default name when objective changes
     const handleObjectiveSelect = (obj: ObjectiveType) => {
         setObjective(obj);
         if (!campaignName) {
-            setCampaignName(`New ${obj.replace('OUTCOME_', '')} Campaign`);
+            const names: Record<string, string> = {
+                OUTCOME_AWARENESS: 'Campaña de Reconocimiento',
+                OUTCOME_TRAFFIC: 'Campaña de Tráfico',
+                OUTCOME_ENGAGEMENT: 'Campaña de Interacción',
+                OUTCOME_LEADS: 'Campaña de Leads',
+                OUTCOME_APP_PROMOTION: 'Campaña de App',
+                OUTCOME_SALES: 'Campaña de Ventas',
+            };
+            setCampaignName(names[obj] || `Campaña ${obj.replace('OUTCOME_', '')}`);
         }
     };
 
@@ -86,9 +93,6 @@ export default function CreateCampaignPage() {
         setStep(step - 1);
     };
 
-    const toggleLanguage = () => {
-        setLang(prev => prev === 'en' ? 'es' : 'en');
-    };
 
 
     // Verification State
@@ -393,10 +397,6 @@ export default function CreateCampaignPage() {
                     <h1 className="text-3xl font-bold tracking-tight">{step === 1 ? t.steps.campaign : step === 2 ? t.steps.adSet : step === 3 ? t.steps.adCreative : t.steps.review}</h1>
                     <p className="text-muted-foreground">Follow the steps to launch your Meta Ad.</p>
                 </div>
-                <Button variant="ghost" size="sm" onClick={toggleLanguage} className="gap-2">
-                    <Languages className="h-4 w-4" />
-                    {lang === 'en' ? 'Español' : 'English'}
-                </Button>
             </div>
 
             {/* Stepper Indicator */}
@@ -441,13 +441,17 @@ export default function CreateCampaignPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <Label className="text-base">{t.campaign.cbo}</Label>
+                                <div className="flex items-center justify-between gap-4">
+                                    <div>
+                                        <Label className="text-base">Optimización automática del presupuesto</Label>
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                            {isCBO
+                                                ? 'Meta reparte el presupuesto entre tus anuncios para obtener los mejores resultados. Recomendado.'
+                                                : 'Tú decides cuánto gasta cada grupo de anuncios por separado (uso avanzado).'}
+                                        </p>
+                                    </div>
                                     <Switch checked={isCBO} onCheckedChange={setIsCBO} />
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                    {isCBO ? t.campaign.cboDesc : t.campaign.aboDesc}
-                                </p>
                             </div>
 
                             {isCBO && (

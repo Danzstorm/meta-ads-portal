@@ -6,31 +6,26 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Badge } from "@/components/ui/badge"
-import { X } from "lucide-react"
-import { dictionaries, Language } from "@/lib/dictionaries"
+import { X, Info } from "lucide-react"
 import { countries } from "@/lib/countries"
 
 export interface TargetingParams {
     age_min: number;
     age_max: number;
-    genders: number[]; // 1=Male, 2=Female, 0=All (Meta API specific)
-    geo_locations: {
-        countries: string[];
-    };
+    genders: number[];
+    geo_locations: { countries: string[] };
     languages: string[];
-    detailed_targeting: string[]; // Just strings for visualization
+    detailed_targeting: string[];
     placements: 'advantage' | 'manual';
 }
 
 interface TargetingFormProps {
     values: TargetingParams;
     onChange: (values: TargetingParams) => void;
-    lang: Language;
+    lang: string;
 }
 
-export function TargetingForm({ values, onChange, lang }: TargetingFormProps) {
-    const t = dictionaries[lang];
-
+export function TargetingForm({ values, onChange }: TargetingFormProps) {
     const handleChange = (field: string, value: any) => {
         onChange({ ...values, [field]: value });
     };
@@ -39,7 +34,6 @@ export function TargetingForm({ values, onChange, lang }: TargetingFormProps) {
         let genders: number[] = [];
         if (val === '1') genders = [1];
         if (val === '2') genders = [2];
-        // Empty for ALL
         onChange({ ...values, genders });
     };
 
@@ -53,10 +47,6 @@ export function TargetingForm({ values, onChange, lang }: TargetingFormProps) {
         }
     };
 
-    const removeLanguage = (langToRemove: string) => {
-        handleChange('languages', values.languages.filter(l => l !== langToRemove));
-    };
-
     const addInterest = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             const val = e.currentTarget.value.trim();
@@ -67,27 +57,24 @@ export function TargetingForm({ values, onChange, lang }: TargetingFormProps) {
         }
     };
 
-    const removeInterest = (interestToRemove: string) => {
-        handleChange('detailed_targeting', values.detailed_targeting.filter(i => i !== interestToRemove));
-    };
-
     return (
         <Card>
             <CardHeader>
-                <CardTitle>{t.adSet.audience}</CardTitle>
+                <CardTitle>Audiencia</CardTitle>
+                <p className="text-sm text-muted-foreground">Define a quién quieres llegar con tu anuncio.</p>
             </CardHeader>
             <CardContent className="space-y-6">
-                {/* Location, Age, Gender */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                {/* Location + Age + Gender */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="space-y-2">
-                        <Label>{t.adSet.location} (Country Code)</Label>
-                        <Label>{t.adSet.location}</Label>
+                        <Label>País</Label>
                         <Select
                             value={values.geo_locations.countries[0] || ''}
                             onValueChange={(val) => handleChange('geo_locations', { countries: [val] })}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select Country" />
+                                <SelectValue placeholder="Selecciona un país" />
                             </SelectTrigger>
                             <SelectContent>
                                 {countries.map((country) => (
@@ -98,87 +85,107 @@ export function TargetingForm({ values, onChange, lang }: TargetingFormProps) {
                             </SelectContent>
                         </Select>
                     </div>
+
                     <div className="space-y-2">
-                        <Label>{t.adSet.ageMin}</Label>
-                        <Input
-                            type="number"
-                            min={13} max={65}
-                            value={values.age_min}
-                            onChange={(e) => handleChange('age_min', parseInt(e.target.value))}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>{t.adSet.ageMax}</Label>
-                        <Input
-                            type="number"
-                            min={13} max={65}
-                            value={values.age_max}
-                            onChange={(e) => handleChange('age_max', parseInt(e.target.value))}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>{t.adSet.gender}</Label>
-                        <Select onValueChange={handleGenderChange} defaultValue={values.genders.length === 0 ? "0" : values.genders[0].toString()}>
-                            <SelectTrigger>
-                                <SelectValue placeholder={t.adSet.all} />
-                            </SelectTrigger>
+                        <Label>Edad mínima</Label>
+                        <Select
+                            value={String(values.age_min)}
+                            onValueChange={(val) => handleChange('age_min', parseInt(val))}
+                        >
+                            <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="0">{t.adSet.all}</SelectItem>
-                                <SelectItem value="1">{t.adSet.male}</SelectItem>
-                                <SelectItem value="2">{t.adSet.female}</SelectItem>
+                                {[18,21,25,30,35,40,45,50,55,60,65].map(age => (
+                                    <SelectItem key={age} value={String(age)}>{age} años</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Edad máxima</Label>
+                        <Select
+                            value={String(values.age_max)}
+                            onValueChange={(val) => handleChange('age_max', parseInt(val))}
+                        >
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                {[25,30,35,40,45,50,55,60,65].map(age => (
+                                    <SelectItem key={age} value={String(age)}>{age} años</SelectItem>
+                                ))}
+                                <SelectItem value="65">65+ años</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Género</Label>
+                        <Select
+                            value={values.genders.length === 0 ? "0" : values.genders[0].toString()}
+                            onValueChange={handleGenderChange}
+                        >
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="0">Todos</SelectItem>
+                                <SelectItem value="1">Solo hombres</SelectItem>
+                                <SelectItem value="2">Solo mujeres</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                 </div>
 
-                {/* Languages */}
+                {/* Interests */}
                 <div className="space-y-2">
-                    <Label>{t.adSet.languages}</Label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                        {values.languages.map((l) => (
-                            <Badge key={l} variant="secondary" className="gap-1">
-                                {l}
-                                <X className="h-3 w-3 cursor-pointer" onClick={() => removeLanguage(l)} />
-                            </Badge>
-                        ))}
-                    </div>
-                    <Input
-                        placeholder="Type language and press Enter (e.g., English, Spanish)"
-                        onKeyDown={addLanguage}
-                    />
-                </div>
-
-                {/* Detailed Targeting */}
-                <div className="space-y-2">
-                    <Label>{t.adSet.detailedTargeting}</Label>
+                    <Label>
+                        Intereses <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+                    </Label>
                     <div className="flex flex-wrap gap-2 mb-2">
                         {values.detailed_targeting.map((i) => (
                             <Badge key={i} variant="outline" className="gap-1">
                                 {i}
-                                <X className="h-3 w-3 cursor-pointer" onClick={() => removeInterest(i)} />
+                                <X className="h-3 w-3 cursor-pointer" onClick={() =>
+                                    handleChange('detailed_targeting', values.detailed_targeting.filter(x => x !== i))
+                                } />
                             </Badge>
                         ))}
                     </div>
                     <Input
-                        placeholder="Add interests, behaviors... (Type and press Enter)"
+                        placeholder="Ej: Emprendimiento, Fitness, Tecnología... (escribe y presiona Enter)"
                         onKeyDown={addInterest}
                     />
+                    <p className="text-xs text-muted-foreground">
+                        Agrega intereses para llegar a personas más afines a tu producto.
+                    </p>
                 </div>
 
                 {/* Placements */}
-                <div className="space-y-3 pt-2">
-                    <Label className="text-base">{t.adSet.placements}</Label>
+                <div className="space-y-3 pt-2 border-t">
+                    <Label className="text-base">Ubicaciones del anuncio</Label>
                     <RadioGroup
                         value={values.placements}
                         onValueChange={(val: 'advantage' | 'manual') => handleChange('placements', val)}
+                        className="space-y-3"
                     >
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="advantage" id="p-advantage" />
-                            <Label htmlFor="p-advantage">{t.adSet.advantagePlacements}</Label>
+                        <div className="flex items-start space-x-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30">
+                            <RadioGroupItem value="advantage" id="p-advantage" className="mt-0.5" />
+                            <div>
+                                <Label htmlFor="p-advantage" className="cursor-pointer font-medium">
+                                    Automático (recomendado)
+                                </Label>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                    Meta elige las mejores ubicaciones: Feed, Stories, Reels, etc.
+                                </p>
+                            </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="manual" id="p-manual" />
-                            <Label htmlFor="p-manual">{t.adSet.manualPlacements}</Label>
+                        <div className="flex items-start space-x-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30">
+                            <RadioGroupItem value="manual" id="p-manual" className="mt-0.5" />
+                            <div>
+                                <Label htmlFor="p-manual" className="cursor-pointer font-medium">
+                                    Manual
+                                </Label>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                    Tú controlas dónde aparece el anuncio (avanzado).
+                                </p>
+                            </div>
                         </div>
                     </RadioGroup>
                 </div>
