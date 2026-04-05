@@ -78,11 +78,25 @@ export default function CreateCampaignPage() {
     const handleNext = () => {
         if (step === 1) {
             if (!objective) {
-                toast.error(t.campaign.selectObjective);
+                toast.error("Selecciona un objetivo de campaña.");
                 return;
             }
             if (!campaignName.trim()) {
-                toast.error(t.campaign.name + " is required.");
+                toast.error("El nombre de la campaña es obligatorio.");
+                return;
+            }
+        }
+        if (step === 3) {
+            if (!adCreative.page_id.trim()) {
+                toast.error("Ingresa el ID de tu Página de Facebook antes de continuar.");
+                return;
+            }
+            if (!adCreative.link_url || !adCreative.link_url.startsWith('http')) {
+                toast.error("Ingresa una URL de destino válida (debe empezar con https://).");
+                return;
+            }
+            if (!adCreative.image_url) {
+                toast.error("Sube una imagen para tu anuncio antes de continuar.");
                 return;
             }
         }
@@ -102,19 +116,28 @@ export default function CreateCampaignPage() {
 
 
     const handleSubmit = async () => {
-        // Validation for Ad Creative
         if (!adCreative.page_id) {
-            toast.error("Please select a Facebook Page (Identity) or enter a Page ID manually in Step 3.");
+            toast.error("Falta la Página de Facebook. Ve al Paso 3 e ingresa tu Page ID.");
             return;
         }
-
         if (!adCreative.image_url) {
-            toast.error("Please select an image for your ad.");
+            toast.error("Falta la imagen del anuncio. Ve al Paso 3 y sube una imagen.");
             return;
         }
-
+        if (!adCreative.link_url || !adCreative.link_url.startsWith('http')) {
+            toast.error("Falta la URL de destino. Ve al Paso 3 e ingresa una URL válida (ej: https://tusitio.com).");
+            return;
+        }
+        if (!adCreative.headline.trim()) {
+            toast.error("Falta el título del anuncio. Ve al Paso 3 y escribe un título.");
+            return;
+        }
+        if (!adCreative.primary_text.trim()) {
+            toast.error("Falta el texto principal del anuncio. Ve al Paso 3 y escribe una descripción.");
+            return;
+        }
         if (!apiClient || !adAccountId) {
-            toast.error("Error: Call to API failed. Ad Account ID or Access Token is missing.");
+            toast.error("Falta configuración: verifica que el Token y la Cuenta Publicitaria estén guardados en Configuración.");
             console.error("Missing Context:", { apiClient: !!apiClient, adAccountId });
             return;
         }
