@@ -143,7 +143,7 @@ export default function SettingsPage() {
                         <Input
                             value={pageId}
                             onChange={(e) => setPageId(e.target.value)}
-                            placeholder="Ej: 61580381969642"
+                            placeholder="Ej: 123456789012345"
                             className="font-mono"
                         />
                     </div>
