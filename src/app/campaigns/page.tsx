@@ -38,18 +38,24 @@ export default function CampaignsPage() {
         }
     }, [apiClient, adAccountId, accessToken]);
 
-    if (!accessToken) {
+    if (!accessToken || !adAccountId) {
         return (
             <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold tracking-tight">Campaigns</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Campañas</h1>
                 </div>
                 <div className="p-8 text-center border border-dashed rounded-lg bg-muted/20">
                     <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">API Not Connected</h3>
-                    <p className="text-muted-foreground mb-4">Please configure your Access Token in Settings to view campaigns.</p>
+                    <h3 className="text-lg font-medium">
+                        {!accessToken ? 'Token no configurado' : 'Cuenta publicitaria no seleccionada'}
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                        {!accessToken
+                            ? 'Ve a Configuración y guarda tu token de acceso de Meta.'
+                            : 'Ve a Configuración y selecciona tu cuenta publicitaria en el dropdown.'}
+                    </p>
                     <Link href="/settings">
-                        <Button variant="outline">Go to Settings</Button>
+                        <Button variant="outline">Ir a Configuración</Button>
                     </Link>
                 </div>
             </div>
@@ -59,17 +65,15 @@ export default function CampaignsPage() {
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold tracking-tight">Campaigns</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Campañas</h1>
                 <div className="flex gap-2">
-                    <Button variant="outline" size="icon" onClick={() => {
+                    <Button variant="outline" size="icon" title="Actualizar" onClick={() => {
                         setIsLoading(true);
-                        // Force re-fetch
                         if (accessToken && apiClient && adAccountId) {
                             apiClient.getCampaigns(adAccountId).then(response => {
-                                console.log("Manual Refresh Campaigns:", response.data);
                                 setCampaigns(response.data);
-                                toast.success("Refreshed");
-                            }).catch(e => toast.error("Failed to refresh")).finally(() => setIsLoading(false));
+                                toast.success("Lista actualizada");
+                            }).catch(() => toast.error("Error al actualizar")).finally(() => setIsLoading(false));
                         }
                     }}>
                         <Loader2 className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -77,7 +81,7 @@ export default function CampaignsPage() {
                     <Link href="/campaigns/create">
                         <Button>
                             <PlusCircle className="mr-2 h-4 w-4" />
-                            Create Campaign
+                            Nueva campaña
                         </Button>
                     </Link>
                 </div>
@@ -91,13 +95,13 @@ export default function CampaignsPage() {
                 <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm h-[400px]">
                     <div className="flex flex-col items-center gap-1 text-center">
                         <h3 className="text-2xl font-bold tracking-tight">
-                            No campaigns found
+                            No hay campañas
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                            You haven't created any campaigns yet in this ad account.
+                            No se encontraron campañas en esta cuenta publicitaria.
                         </p>
                         <Link href="/campaigns/create">
-                            <Button className="mt-4">Create Campaign</Button>
+                            <Button className="mt-4">Crear campaña</Button>
                         </Link>
                     </div>
                 </div>
@@ -137,7 +141,7 @@ export default function CampaignsPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="text-sm text-muted-foreground">
-                                    Objective: {campaign.objective}
+                                    Objetivo: {campaign.objective?.replace('OUTCOME_', '')}
                                 </div>
                                 <div className="flex items-center justify-between mt-4">
                                     <div className="text-xs text-muted-foreground">
@@ -148,15 +152,15 @@ export default function CampaignsPage() {
                                         size="sm"
                                         className="h-7 text-xs"
                                         onClick={async () => {
-                                            if (confirm("Are you sure you want to delete this campaign? This cannot be undone.")) {
+                                            if (confirm("¿Seguro que quieres eliminar esta campaña? Esta acción no se puede deshacer.")) {
                                                 try {
                                                     if (!apiClient) throw new Error("API Client not ready");
                                                     await apiClient.deleteCampaign(campaign.id);
                                                     setCampaigns(campaigns.filter(c => c.id !== campaign.id));
-                                                    toast.success("Campaign deleted");
+                                                    toast.success("Campaña eliminada");
                                                 } catch (error) {
                                                     console.error(error);
-                                                    toast.error("Failed to delete campaign");
+                                                    toast.error("Error al eliminar la campaña");
                                                 }
                                             }
                                         }}
